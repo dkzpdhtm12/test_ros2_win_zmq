@@ -1,8 +1,10 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int8, Int32
+from sensor_msgs.msg import JointState
 import json
 import zmq
+import subprocess
 
 class WindowsCommunication(Node):
 
@@ -16,12 +18,18 @@ class WindowsCommunication(Node):
         self.zmq_socket_pub = self.zmq_context.socket(zmq.PUB)
         self.zmq_socket_pub.bind("tcp://*:12346")
 
-        self.specific_ros2_topic_subscriber = self.create_subscription(
+        self.cylinder_ticks_ros2_topic_subscriber = self.create_subscription(
             Int32,
             '/cylinder/ticks',
-            self.specific_ros2_topic_subscriber_callback,
+            self.cylinder_ticks_ros2_topic_subscriber_callback,
             10)
-       
+
+        self.joint_states_ros2_topic_subscriber = self.create_subscription(
+            JointState,
+            '/joint_states',
+            self.joint_states_ros2_topic_subscriber_callback,
+            10)
+
         self.timer = self.create_timer(0.1, self.win_pub_listener_callback)
 
         self.get_logger().info('Ready to windows communication in ROS2 python.')
@@ -34,22 +42,35 @@ class WindowsCommunication(Node):
 
                 topic_name = json_data['topic']
                 message_data = json_data['message']['data']
+                if topic_name == 'manipulator_connect':
+                    self.get_logger().info('Connect doosan manipulator')
+                    subprocess.Popen(['ros2', 'launch', 'growth_meter_bringup', 'doosan.launch.py'])
+                else:
+                    msg = Int8()
+                    msg.data = int(message_data)
+                    self.create_publisher(Int8, topic_name, 10).publish(msg)
 
-                msg = Int8()
-                msg.data = int(message_data)
-                self.create_publisher(Int8, topic_name, 10).publish(msg)
-
-                self.get_logger().info(f'Received and republished message: {msg.data}')
+                    self.get_logger().info(f'Received and republished message: {msg.data}')
         except zmq.Again:
             pass
         except (json.JSONDecodeError, KeyError, ValueError) as e:
             self.get_logger().error(f'Error processing message: {e}')
 
-    def specific_ros2_topic_subscriber_callback(self, msg):
+    def cylinder_ticks_ros2_topic_subscriber_callback(self, msg):
         json_data = json.dumps({
             'topic': '/cylinder/ticks',
             'message': {
                 'data': msg.data
+            }
+        })
+        self.zmq_socket_pub.send_string(json_data)
+
+    def joint_states_ros2_topic_subscriber_callback(self, msg):
+        positions = list(msg.position)
+        json_data = json.dumps({
+            'topic': '/joint_states',
+            'message': {
+                'positions': positions
             }
         })
         self.zmq_socket_pub.send_string(json_data)
