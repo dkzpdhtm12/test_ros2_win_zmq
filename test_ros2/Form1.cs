@@ -57,6 +57,7 @@ namespace test_ros2
                 return;
             }
         }
+
         private void Subscriber_MessageReceived(object? sender, string message)
         {
             try
@@ -72,16 +73,40 @@ namespace test_ros2
                         labelTicks.Text = $"Cylinder Height: {data} cm";
                     }));
                 }
+
+                if (topic == "/joint_states")
+                {
+                    var positions = jsonData["message"]?["positions"]?.ToObject<double[]>();
+                    if (positions != null && positions.Length >= 6)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            joint1_value.Text = $"joint1_value: {positions[0] * 180 / 3.14}";
+                            joint2_value.Text = $"joint2_value: {positions[1] * 180 / 3.14}";
+                            joint3_value.Text = $"joint3_value: {positions[2] * 180 / 3.14}";
+                            joint4_value.Text = $"joint4_value: {positions[3] * 180 / 3.14}";
+                            joint5_value.Text = $"joint5_value: {positions[4] * 180 / 3.14}";
+                            joint6_value.Text = $"joint6_value: {positions[5] * 180 / 3.14}";
+                        }));
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error handling message: {ex.Message}");
             }
         }
+
         private void PublishJoyCommand(string topic, sbyte commandValue)
         {
             publisher?.Publish(topic, commandValue);
         }
+
+        private void PublishTopicMessage(string topic, string message)
+        {
+            publisher?.Publish(topic, message);
+        }
+
         private string GetLocalIPAddress()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -94,27 +119,51 @@ namespace test_ros2
             }
             return string.Empty;
         }
+
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             base.OnFormClosed(e);
             DisposeResources();
         }
+
         private void DisposeResources()
         {
             publisher?.Dispose();
             subscriber?.Dispose();
         }
+
         private void button1_Click(object sender, EventArgs e)
         {
             PublishJoyCommand("/joy_command", 8);
         }
+
         private void button2_Click(object sender, EventArgs e)
         {
             PublishJoyCommand("/joy_command", 7);
         }
+
         private void button3_Click(object sender, EventArgs e)
         {
             PublishJoyCommand("/joy_command", 9);
+        }
+
+        private void emergency_stop_Click(object sender, EventArgs e)
+        {
+            PublishJoyCommand("/joy_command", 5);
+        }
+
+        private void manipulator_connect_Click(object sender, EventArgs e)
+        {
+            var message = new
+            {
+                topic = "manipulator_connect",
+                message = new
+                {
+                    data = 1
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("manipulator_connect", jsonMessage);
         }
     }
 
@@ -127,11 +176,13 @@ namespace test_ros2
         {
             publisherSocket = new PublisherSocket();
         }
+
         public void Initialize(string ipAddress, int port)
         {
             publisherSocket.Bind($"tcp://{ipAddress}:{port}");
             LocalEndpoint = $"{ipAddress}:{port}";
         }
+
         public void Publish(string topic, sbyte commandValue)
         {
             var message = new Int8 { data = commandValue };
@@ -144,11 +195,19 @@ namespace test_ros2
             byte[] byteMessage = Serialize(topicMessage);
             publisherSocket.SendFrame(byteMessage);
         }
+
+        public void Publish(string topic, string message)
+        {
+            byte[] byteMessage = Encoding.UTF8.GetBytes(message);
+            publisherSocket.SendFrame(byteMessage);
+        }
+
         public void Dispose()
         {
             publisherSocket?.Close();
             publisherSocket?.Dispose();
         }
+
         private byte[] Serialize(object message)
         {
             string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
@@ -168,6 +227,7 @@ namespace test_ros2
         {
             subscriberSocket = new SubscriberSocket();
         }
+
         public void Initialize(string ipAddress, int port)
         {
             subscriberSocket.Connect($"tcp://{ipAddress}:{port}");
@@ -175,6 +235,7 @@ namespace test_ros2
             isRunning = true;
             receiveTask = Task.Run(() => ReceiveMessages());
         }
+
         private void ReceiveMessages()
         {
             while (isRunning)
@@ -193,6 +254,7 @@ namespace test_ros2
                 }
             }
         }
+
         public void Dispose()
         {
             isRunning = false;
