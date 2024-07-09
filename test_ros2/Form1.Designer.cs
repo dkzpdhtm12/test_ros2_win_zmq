@@ -54,6 +54,10 @@
             joint6_value_down = new Button();
             manipulator_connect = new Button();
             connection_status = new Label();
+            move_forward = new Button();
+            move_backward = new Button();
+            move_left = new Button();
+            move_right = new Button();
             SuspendLayout();
             // 
             // cylinder_up
@@ -180,6 +184,9 @@
             joint1_value_up.TabIndex = 12;
             joint1_value_up.Text = "up";
             joint1_value_up.UseVisualStyleBackColor = true;
+            joint1_value_up.Click += joint1_value_up_Click;
+            joint1_value_up.MouseDown += joint1_value_up_MouseDown;
+            joint1_value_up.MouseUp += joint1_value_up_MouseUp;
             // 
             // joint1_value_down
             // 
@@ -189,6 +196,9 @@
             joint1_value_down.TabIndex = 13;
             joint1_value_down.Text = "down";
             joint1_value_down.UseVisualStyleBackColor = true;
+            joint1_value_down.Click += joint1_value_down_Click;
+            joint1_value_down.MouseDown += joint1_value_down_MouseDown;
+            joint1_value_down.MouseUp += joint1_value_down_MouseUp;
             // 
             // joint2_value_up
             // 
@@ -198,6 +208,9 @@
             joint2_value_up.TabIndex = 14;
             joint2_value_up.Text = "up";
             joint2_value_up.UseVisualStyleBackColor = true;
+            joint2_value_up.Click += joint2_value_up_Click;
+            joint2_value_up.MouseDown += joint2_value_up_MouseDown;
+            joint2_value_up.MouseUp += joint2_value_up_MouseUp;
             // 
             // joint3_value_up
             // 
@@ -207,6 +220,9 @@
             joint3_value_up.TabIndex = 15;
             joint3_value_up.Text = "up";
             joint3_value_up.UseVisualStyleBackColor = true;
+            joint3_value_up.Click += joint3_value_up_Click;
+            joint3_value_up.MouseDown += joint3_value_up_MouseDown;
+            joint3_value_up.MouseUp += joint3_value_up_MouseUp;
             // 
             // joint4_value_up
             // 
@@ -216,6 +232,9 @@
             joint4_value_up.TabIndex = 16;
             joint4_value_up.Text = "up";
             joint4_value_up.UseVisualStyleBackColor = true;
+            joint4_value_up.Click += joint4_value_up_Click;
+            joint4_value_up.MouseDown += joint4_value_up_MouseDown;
+            joint4_value_up.MouseUp += joint4_value_up_MouseUp;
             // 
             // joint5_value_up
             // 
@@ -225,6 +244,9 @@
             joint5_value_up.TabIndex = 17;
             joint5_value_up.Text = "up";
             joint5_value_up.UseVisualStyleBackColor = true;
+            joint5_value_up.Click += joint5_value_up_Click;
+            joint5_value_up.MouseDown += joint5_value_up_MouseDown;
+            joint5_value_up.MouseUp += joint5_value_up_MouseUp;
             // 
             // joint6_value_up
             // 
@@ -234,6 +256,9 @@
             joint6_value_up.TabIndex = 18;
             joint6_value_up.Text = "up";
             joint6_value_up.UseVisualStyleBackColor = true;
+            joint6_value_up.Click += joint6_value_up_Click;
+            joint6_value_up.MouseDown += joint6_value_up_MouseDown;
+            joint6_value_up.MouseUp += joint6_value_up_MouseUp;
             // 
             // joint2_value_down
             // 
@@ -243,6 +268,9 @@
             joint2_value_down.TabIndex = 19;
             joint2_value_down.Text = "down";
             joint2_value_down.UseVisualStyleBackColor = true;
+            joint2_value_down.Click += joint2_value_down_Click;
+            joint2_value_down.MouseDown += joint2_value_down_MouseDown;
+            joint2_value_down.MouseUp += joint2_value_down_MouseUp;
             // 
             // joint3_value_down
             // 
@@ -252,6 +280,9 @@
             joint3_value_down.TabIndex = 20;
             joint3_value_down.Text = "down";
             joint3_value_down.UseVisualStyleBackColor = true;
+            joint3_value_down.Click += joint3_value_down_Click;
+            joint3_value_down.MouseDown += joint3_value_down_MouseDown;
+            joint3_value_down.MouseUp += joint3_value_down_MouseUp;
             // 
             // joint4_value_down
             // 
@@ -261,6 +292,9 @@
             joint4_value_down.TabIndex = 21;
             joint4_value_down.Text = "down";
             joint4_value_down.UseVisualStyleBackColor = true;
+            joint4_value_down.Click += joint4_value_down_Click;
+            joint4_value_down.MouseDown += joint4_value_down_MouseDown;
+            joint4_value_down.MouseUp += joint4_value_down_MouseUp;
             // 
             // joint5_value_down
             // 
@@ -270,6 +304,9 @@
             joint5_value_down.TabIndex = 22;
             joint5_value_down.Text = "down";
             joint5_value_down.UseVisualStyleBackColor = true;
+            joint5_value_down.Click += joint5_value_down_Click;
+            joint5_value_down.MouseDown += joint5_value_down_MouseDown;
+            joint5_value_down.MouseUp += joint5_value_down_MouseUp;
             // 
             // joint6_value_down
             // 
@@ -279,6 +316,9 @@
             joint6_value_down.TabIndex = 23;
             joint6_value_down.Text = "down";
             joint6_value_down.UseVisualStyleBackColor = true;
+            joint6_value_down.Click += joint6_value_down_Click;
+            joint6_value_down.MouseDown += joint6_value_down_MouseDown;
+            joint6_value_down.MouseUp += joint6_value_down_MouseUp;
             // 
             // manipulator_connect
             // 
@@ -299,11 +339,53 @@
             connection_status.TabIndex = 25;
             connection_status.Text = "label1";
             // 
+            // move_forward
+            // 
+            move_forward.Location = new Point(1579, 975);
+            move_forward.Name = "move_forward";
+            move_forward.Size = new Size(125, 96);
+            move_forward.TabIndex = 26;
+            move_forward.Text = "Move Forward";
+            move_forward.UseVisualStyleBackColor = true;
+            move_forward.MouseDown += move_forward_MouseDownAsync;
+            move_forward.MouseUp += move_forward_MouseUp;
+            // 
+            // move_backward
+            // 
+            move_backward.Location = new Point(1579, 1147);
+            move_backward.Name = "move_backward";
+            move_backward.Size = new Size(125, 96);
+            move_backward.TabIndex = 27;
+            move_backward.Text = "Move Backward";
+            move_backward.UseVisualStyleBackColor = true;
+            // 
+            // move_left
+            // 
+            move_left.Location = new Point(1433, 1066);
+            move_left.Name = "move_left";
+            move_left.Size = new Size(125, 96);
+            move_left.TabIndex = 28;
+            move_left.Text = "Move Left";
+            move_left.UseVisualStyleBackColor = true;
+            // 
+            // move_right
+            // 
+            move_right.Location = new Point(1726, 1066);
+            move_right.Name = "move_right";
+            move_right.Size = new Size(125, 96);
+            move_right.TabIndex = 29;
+            move_right.Text = "Move Right";
+            move_right.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1901, 1283);
+            Controls.Add(move_right);
+            Controls.Add(move_left);
+            Controls.Add(move_backward);
+            Controls.Add(move_forward);
             Controls.Add(connection_status);
             Controls.Add(manipulator_connect);
             Controls.Add(joint6_value_down);
@@ -364,5 +446,9 @@
         private Button joint6_value_down;
         private Button manipulator_connect;
         private Label connection_status;
+        private Button move_forward;
+        private Button move_backward;
+        private Button move_left;
+        private Button move_right;
     }
 }
