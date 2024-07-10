@@ -66,6 +66,7 @@
             growth_numUpDown = new NumericUpDown();
             save_yaml = new Button();
             load_yaml = new Button();
+            confirmation_signal_button = new Button();
             ((System.ComponentModel.ISupportInitialize)area_numUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)growth_numUpDown).BeginInit();
             SuspendLayout();
@@ -461,11 +462,23 @@
             load_yaml.Text = "Load Yaml";
             load_yaml.UseVisualStyleBackColor = true;
             // 
+            // confirmation_signal_button
+            // 
+            confirmation_signal_button.Font = new Font("맑은 고딕", 20F);
+            confirmation_signal_button.Location = new Point(762, 768);
+            confirmation_signal_button.Name = "confirmation_signal_button";
+            confirmation_signal_button.Size = new Size(284, 155);
+            confirmation_signal_button.TabIndex = 40;
+            confirmation_signal_button.Text = "Manual drive with yaml";
+            confirmation_signal_button.UseVisualStyleBackColor = true;
+            confirmation_signal_button.Click += confirmation_signal_button_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1901, 1283);
+            Controls.Add(confirmation_signal_button);
             Controls.Add(load_yaml);
             Controls.Add(save_yaml);
             Controls.Add(growth_numUpDown);
@@ -552,5 +565,6 @@
         private NumericUpDown growth_numUpDown;
         private Button save_yaml;
         private Button load_yaml;
+        private Button confirmation_signal_button;
     }
 }

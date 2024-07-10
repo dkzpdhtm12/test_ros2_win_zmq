@@ -1131,11 +1131,11 @@ namespace test_ros2
             string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
             PublishTopicMessage("/request_move_spin", jsonMessage);
         }
-/// <summary>
-/// ////////////// yaml颇老 历厘何
-/// </summary>
-/// <param name="sender"></param>
-/// <param name="e"></param>
+        /// <summary>
+        /// ////////////// yaml颇老 历厘何
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void save_yaml_Click(object sender, EventArgs e)
         {
             int areaValue = (int)area_numUpDown.Value;
@@ -1151,6 +1151,20 @@ namespace test_ros2
             };
             string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
             PublishTopicMessage("/save_yaml", jsonMessage);
+        }
+
+        private void confirmation_signal_button_Click(object sender, EventArgs e)
+        {
+            var message = new
+            {
+                topic = "/confirmation_signal",
+                message = new
+                {
+                    data = 1
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/confirmation_signal", jsonMessage);
         }
         ////////////////////////////场
     }
