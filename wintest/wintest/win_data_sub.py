@@ -7,6 +7,9 @@ from dsr_msgs2.srv import MoveJoint
 import json
 import zmq
 import subprocess
+import yaml
+
+PI = 3.141592
 
 class WindowsCommunication(Node):
 
@@ -34,6 +37,8 @@ class WindowsCommunication(Node):
 
         self.timer = self.create_timer(0.1, self.win_pub_listener_callback)
 
+        self.target = {}
+
         self.get_logger().info('Ready for windows communication in ROS2 python.')
 
     def win_pub_listener_callback(self):
@@ -59,11 +64,28 @@ class WindowsCommunication(Node):
                 elif topic_name == '/joint_request':
                     self.handle_joint_request(message_data)
 
-                elif topic_name == '/request_move_forward':
+                elif topic_name == '/request_move_vertical':
                     msg = Twist()
-                    msg.linear = Vector3(x=message_data, y=.0, z=0.0)
-                    msg.angular = Vector3(x=.0, y=.0, z=0.0)
+                    msg.linear = Vector3(x=message_data, y=0.0, z=0.0)
+                    msg.angular = Vector3(x=0.0, y=0.0, z=0.0)
                     self.create_publisher(Twist, '/cmd_vel', 10).publish(msg)
+
+                elif topic_name == '/request_move_horizontal':
+                    msg = Twist()
+                    msg.linear = Vector3(x=0.0, y=message_data, z=0.0)
+                    msg.angular = Vector3(x=0.0, y=0.0, z=0.0)
+                    self.create_publisher(Twist, '/cmd_vel', 10).publish(msg)
+
+                elif topic_name == '/request_move_spin':
+                    msg = Twist()
+                    msg.linear = Vector3(x=0.0, y=0.0, z=0.0)
+                    msg.angular = Vector3(x=0.0, y=0.0, z=message_data)
+                    self.create_publisher(Twist, '/cmd_vel', 10).publish(msg)
+
+                elif topic_name == '/save_yaml':
+                    area = message_data[0]
+                    growth = message_data[1]
+                    self.handle_save_yaml(area, growth)
 
                 else:
                     pass
@@ -119,6 +141,7 @@ class WindowsCommunication(Node):
             }
         })
         self.zmq_socket_pub.send_string(json_data)
+        self.ticks = msg.data
 
     def joint_states_ros2_topic_subscriber_callback(self, msg):
         positions = list(msg.position)
@@ -129,6 +152,67 @@ class WindowsCommunication(Node):
             }
         })
         self.zmq_socket_pub.send_string(json_data)
+        self.joints_list = msg.position
+
+    def handle_save_yaml(self, area, growth):
+        joints_list = self.joints_list
+        ticks = self.ticks
+
+        success = self.add2yaml(area, growth, joints_list, ticks)
+        if success:
+            self.get_logger().info('YAML file updated successfully.')
+        else:
+            self.get_logger().error('Failed to update YAML file.')
+
+    def add2yaml(self, target_area, shot_area, joints_list, ticks):
+        try:
+            joints_list = [float(j) for j in joints_list]
+        except TypeError:
+            self.get_logger().error('Type error')
+            return False
+
+        [j1, j2, j3, j4, j5, j6] = joints_list
+
+        try:
+            if target_area in self.target.keys():
+                if shot_area in self.target[target_area].keys():
+                    self.target[target_area][shot_area].append({
+                        'j1': j1*180/PI,
+                        'j2': j2*180/PI,
+                        'j3': j3*180/PI,
+                        'j4': j4*180/PI,
+                        'j5': j5*180/PI,
+                        'j6': j6*180/PI,
+                        'ticks': ticks
+                    })
+                else:
+                    self.target[target_area][shot_area] = [{
+                        'j1': j1*180/PI,
+                        'j2': j2*180/PI,
+                        'j3': j3*180/PI,
+                        'j4': j4*180/PI,
+                        'j5': j5*180/PI,
+                        'j6': j6*180/PI,
+                        'ticks': ticks
+                    }]
+            else:
+                self.target[target_area] = {shot_area: [{
+                    'j1': j1*180/PI,
+                    'j2': j2*180/PI,
+                    'j3': j3*180/PI,
+                    'j4': j4*180/PI,
+                    'j5': j5*180/PI,
+                    'j6': j6*180/PI,
+                    'ticks': ticks
+                }]}
+
+            with open('config.yaml', 'w') as yaml_file:
+                yaml.dump(self.target, yaml_file)
+
+            return True
+        except AttributeError:
+            self.get_logger().error('Wrong file format. The file is initialized')
+            return False
 
 def main(args=None):
     rclpy.init(args=args)
@@ -143,4 +227,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
