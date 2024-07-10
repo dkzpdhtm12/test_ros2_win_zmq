@@ -24,6 +24,11 @@ namespace test_ros2
         private Stopwatch joint5Stopwatch = new Stopwatch();
         private Stopwatch joint6Stopwatch = new Stopwatch();
         private Stopwatch moveForwardStopwatch = new Stopwatch();
+        private Stopwatch moveBackwardStopwatch = new Stopwatch();
+        private Stopwatch moveLeftStopwatch = new Stopwatch();
+        private Stopwatch moveRightStopwatch = new Stopwatch();
+        private Stopwatch leftSpinStopwatch = new Stopwatch();
+        private Stopwatch rightSpinStopwatch = new Stopwatch();
 
         public Form1()
         {
@@ -66,6 +71,8 @@ namespace test_ros2
                 Close();
                 return;
             }
+
+            SetAllJointControlButtonsEnabled(false);
         }
 
         private void Subscriber_MessageReceived(object? sender, string message)
@@ -106,6 +113,7 @@ namespace test_ros2
                                 }
 
                                 manipulator_connect.Enabled = false;
+                                SetAllJointControlButtonsEnabled(true);
                             }
                         }));
                     }
@@ -142,7 +150,7 @@ namespace test_ros2
             {
                 var label = new Label
                 {
-                    Text = "Connecting...",
+                    Text = "Connecting... wait until 10s...",
                     AutoSize = true,
                     Location = new System.Drawing.Point(10, 10)
                 };
@@ -180,6 +188,22 @@ namespace test_ros2
             {
                 manipulator_connect.Enabled = true;
             }
+        }
+
+        private void SetAllJointControlButtonsEnabled(bool enabled)
+        {
+            joint1_value_up.Enabled = enabled;
+            joint2_value_up.Enabled = enabled;
+            joint3_value_up.Enabled = enabled;
+            joint4_value_up.Enabled = enabled;
+            joint5_value_up.Enabled = enabled;
+            joint6_value_up.Enabled = enabled;
+            joint1_value_down.Enabled = enabled;
+            joint2_value_down.Enabled = enabled;
+            joint3_value_down.Enabled = enabled;
+            joint4_value_down.Enabled = enabled;
+            joint5_value_down.Enabled = enabled;
+            joint6_value_down.Enabled = enabled;
         }
 
         private void PublishJoyCommand(string topic, sbyte commandValue)
@@ -235,6 +259,7 @@ namespace test_ros2
         private void emergency_stop_Click(object sender, EventArgs e)
         {
             PublishJoyCommand("/joy_command", 5);
+            PublishJoyCommand("/joy_command", 7);
         }
         /// <summary>
         /// /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -825,11 +850,10 @@ namespace test_ros2
             joint6Stopwatch.Stop();
         }
         /// <summary>
-        /// ////////////////////////조인트 끝 AMR 방향제어 시작
+        /// ////////////////////////조인트 끝 AMR 방향제어 시작 앞쪽
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        // Add this block of code
         private void move_forward_MouseDown(object sender, MouseEventArgs e)
         {
             moveForwardStopwatch.Start();
@@ -863,14 +887,270 @@ namespace test_ros2
         {
             var message = new
             {
-                topic = "/request_move_forward",
+                topic = "/request_move_vertical",
                 message = new
                 {
                     data = value
                 }
             };
             string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
-            PublishTopicMessage("/request_move_forward", jsonMessage);
+            PublishTopicMessage("/request_move_vertical", jsonMessage);
+        }
+        /// <summary>
+        /// ////////////////////////조인트 끝 AMR 방향제어 시작 뒤쪽
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void move_backward_MouseDown(object sender, MouseEventArgs e)
+        {
+            moveBackwardStopwatch.Start();
+            PublishMoveBackwardCommand(-0.5);
+        }
+
+        private async void move_backward_MouseDownAsync(object sender, MouseEventArgs e)
+        {
+            moveBackwardStopwatch.Restart();
+
+            while (true)
+            {
+                if (!moveBackwardStopwatch.IsRunning)
+                {
+                    break;
+                }
+
+                PublishMoveBackwardCommand(-0.5);
+
+                await Task.Delay(100);
+            }
+        }
+
+        private void move_backward_MouseUp(object sender, MouseEventArgs e)
+        {
+            moveBackwardStopwatch.Stop();
+            PublishMoveBackwardCommand(0.0);
+        }
+
+        private void PublishMoveBackwardCommand(double value)
+        {
+            var message = new
+            {
+                topic = "/request_move_vertical",
+                message = new
+                {
+                    data = value
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/request_move_vertical", jsonMessage);
+        }
+        /// <summary>
+        /// //////////////////////////////////// 왼쪽
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void move_left_MouseDown(object sender, MouseEventArgs e)
+        {
+            moveLeftStopwatch.Start();
+            PublishLeftCommand(0.5);
+        }
+
+        private async void move_left_MouseDownAsync(object sender, MouseEventArgs e)
+        {
+            moveLeftStopwatch.Restart();
+
+            while (true)
+            {
+                if (!moveLeftStopwatch.IsRunning)
+                {
+                    break;
+                }
+
+                PublishLeftCommand(0.5);
+
+                await Task.Delay(100);
+            }
+        }
+
+        private void move_left_MouseUp(object sender, MouseEventArgs e)
+        {
+            moveLeftStopwatch.Stop();
+            PublishLeftCommand(0.0);
+        }
+
+        private void PublishLeftCommand(double value)
+        {
+            var message = new
+            {
+                topic = "/request_move_horizontal",
+                message = new
+                {
+                    data = value
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/request_move_horizontal", jsonMessage);
+        }
+        /// <summary>
+        /// ///////////////////////오른쪽
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void move_right_MouseDown(object sender, MouseEventArgs e)
+        {
+            moveRightStopwatch.Start();
+            PublishRightCommand(-0.5);
+        }
+
+        private async void move_right_MouseDownAsync(object sender, MouseEventArgs e)
+        {
+            moveRightStopwatch.Restart();
+
+            while (true)
+            {
+                if (!moveRightStopwatch.IsRunning)
+                {
+                    break;
+                }
+
+                PublishRightCommand(-0.5);
+
+                await Task.Delay(100);
+            }
+        }
+
+        private void move_right_MouseUp(object sender, MouseEventArgs e)
+        {
+            moveRightStopwatch.Stop();
+            PublishRightCommand(0.0);
+        }
+
+        private void PublishRightCommand(double value)
+        {
+            var message = new
+            {
+                topic = "/request_move_horizontal",
+                message = new
+                {
+                    data = value
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/request_move_horizontal", jsonMessage);
+        }
+        /// <summary>
+        /// /////////////////////////왼쪽 회전
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void left_spin_MouseDown(object sender, MouseEventArgs e)
+        {
+            leftSpinStopwatch.Start();
+            PublishLeftSipnCommand(0.5);
+        }
+
+        private async void left_spin_MouseDownAsync(object sender, MouseEventArgs e)
+        {
+            leftSpinStopwatch.Restart();
+
+            while (true)
+            {
+                if (!leftSpinStopwatch.IsRunning)
+                {
+                    break;
+                }
+
+                PublishLeftSipnCommand(0.5);
+
+                await Task.Delay(100);
+            }
+        }
+
+        private void left_spin_MouseUp(object sender, MouseEventArgs e)
+        {
+            leftSpinStopwatch.Stop();
+            PublishLeftSipnCommand(0.0);
+        }
+
+        private void PublishLeftSipnCommand(double value)
+        {
+            var message = new
+            {
+                topic = "/request_move_spin",
+                message = new
+                {
+                    data = value
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/request_move_spin", jsonMessage);
+        }
+        /// <summary>
+        /// /////////////////////////오른쪽 회전
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void right_spin_MouseDown(object sender, MouseEventArgs e)
+        {
+            rightSpinStopwatch.Start();
+            PublishRightSipnCommand(-0.5);
+        }
+
+        private async void right_spin_MouseDownAsync(object sender, MouseEventArgs e)
+        {
+            rightSpinStopwatch.Restart();
+
+            while (true)
+            {
+                if (!rightSpinStopwatch.IsRunning)
+                {
+                    break;
+                }
+
+                PublishRightSipnCommand(-0.5);
+
+                await Task.Delay(100);
+            }
+        }
+
+        private void right_spin_MouseUp(object sender, MouseEventArgs e)
+        {
+            rightSpinStopwatch.Stop();
+            PublishRightSipnCommand(0.0);
+        }
+
+        private void PublishRightSipnCommand(double value)
+        {
+            var message = new
+            {
+                topic = "/request_move_spin",
+                message = new
+                {
+                    data = value
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/request_move_spin", jsonMessage);
+        }
+/// <summary>
+/// ////////////// yaml파일 저장부
+/// </summary>
+/// <param name="sender"></param>
+/// <param name="e"></param>
+        private void save_yaml_Click(object sender, EventArgs e)
+        {
+            int areaValue = (int)area_numUpDown.Value;
+            int growthValue = (int)growth_numUpDown.Value;
+
+            var message = new
+            {
+                topic = "/save_yaml",
+                message = new
+                {
+                    data = new int[] { areaValue, growthValue }
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/save_yaml", jsonMessage);
         }
         ////////////////////////////끝
     }
