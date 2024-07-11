@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Int8, Int32
+from std_msgs.msg import Int8, Int32, Bool
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import JointState
 from dsr_msgs2.srv import MoveJoint
@@ -87,6 +87,14 @@ class WindowsCommunication(Node):
                     area = message_data[0]
                     growth = message_data[1]
                     self.handle_save_yaml(area, growth)
+
+                elif topic_name == '/confirmation_signal':
+                    msg = Bool()
+                    msg.data = True
+                    self.create_publisher(Bool, '/confirmation_signal', 10).publish(msg)
+
+                else:
+                    pass
 
         except zmq.Again:
             pass
