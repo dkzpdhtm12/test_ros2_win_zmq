@@ -38,13 +38,14 @@ class WindowsCommunication(Node):
         self.timer = self.create_timer(0.1, self.win_pub_listener_callback)
 
         self.target = {}
+        self.joints_list = []
+        self.ticks = 0
 
         self.get_logger().info('Ready for windows communication in ROS2 python.')
 
     def win_pub_listener_callback(self):
         try:
             message = self.zmq_socket_sub.recv(flags=zmq.NOBLOCK).decode('utf-8')
-            print(message)
             if message:
                 json_data = json.loads(message)
 
@@ -86,9 +87,6 @@ class WindowsCommunication(Node):
                     area = message_data[0]
                     growth = message_data[1]
                     self.handle_save_yaml(area, growth)
-
-                else:
-                    pass
 
         except zmq.Again:
             pass
@@ -167,51 +165,45 @@ class WindowsCommunication(Node):
     def add2yaml(self, target_area, shot_area, joints_list, ticks):
         try:
             joints_list = [float(j) for j in joints_list]
-        except TypeError:
-            self.get_logger().error('Type error')
+        except ValueError as e:
+            self.get_logger().error(f'Value error: {e}')
             return False
 
-        [j1, j2, j3, j4, j5, j6] = joints_list
+        try:
+            j1, j2, j3, j4, j5, j6 = joints_list
+        except ValueError as e:
+            self.get_logger().error(f'Unpacking error: {e}')
+            return False
 
         try:
-            if target_area in self.target.keys():
-                if shot_area in self.target[target_area].keys():
-                    self.target[target_area][shot_area].append({
-                        'j1': j1*180/PI,
-                        'j2': j2*180/PI,
-                        'j3': j3*180/PI,
-                        'j4': j4*180/PI,
-                        'j5': j5*180/PI,
-                        'j6': j6*180/PI,
-                        'ticks': ticks
-                    })
-                else:
-                    self.target[target_area][shot_area] = [{
-                        'j1': j1*180/PI,
-                        'j2': j2*180/PI,
-                        'j3': j3*180/PI,
-                        'j4': j4*180/PI,
-                        'j5': j5*180/PI,
-                        'j6': j6*180/PI,
-                        'ticks': ticks
-                    }]
-            else:
-                self.target[target_area] = {shot_area: [{
-                    'j1': j1*180/PI,
-                    'j2': j2*180/PI,
-                    'j3': j3*180/PI,
-                    'j4': j4*180/PI,
-                    'j5': j5*180/PI,
-                    'j6': j6*180/PI,
-                    'ticks': ticks
-                }]}
+            shot_data = {
+                'j1': j1 * 180 / PI,
+                'j2': j2 * 180 / PI,
+                'j3': j3 * 180 / PI,
+                'j4': j4 * 180 / PI,
+                'j5': j5 * 180 / PI,
+                'j6': j6 * 180 / PI,
+                'ticks': ticks
+            }
+
+            if target_area not in self.target:
+                self.target[target_area] = {}
+
+            if shot_area not in self.target[target_area]:
+                self.target[target_area][shot_area] = {}
+
+            shot_id = len(self.target[target_area][shot_area]) + 1
+            self.target[target_area][shot_area][shot_id] = shot_data
 
             with open('config.yaml', 'w') as yaml_file:
-                yaml.dump(self.target, yaml_file)
+                yaml.dump(self.target, yaml_file, default_flow_style=False, sort_keys=False)
 
             return True
-        except AttributeError:
-            self.get_logger().error('Wrong file format. The file is initialized')
+        except AttributeError as e:
+            self.get_logger().error(f'Attribute error: {e}')
+            return False
+        except Exception as e:
+            self.get_logger().error(f'Unexpected error: {e}')
             return False
 
 def main(args=None):

@@ -20,7 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'win_data_sub        = wintest.win_data_sub:main'
+            'win_data_sub             =  wintest.win_data_sub:main',
+            'yaml_to_array_publisher  =  wintest.yaml_to_array_publisher:main',
+
         ],
     },
 )
