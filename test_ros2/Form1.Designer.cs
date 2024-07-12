@@ -67,6 +67,7 @@
             save_yaml = new Button();
             load_yaml = new Button();
             confirmation_signal_button = new Button();
+            auto_drive_button = new Button();
             ((System.ComponentModel.ISupportInitialize)area_numUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)growth_numUpDown).BeginInit();
             SuspendLayout();
@@ -465,7 +466,7 @@
             // confirmation_signal_button
             // 
             confirmation_signal_button.Font = new Font("맑은 고딕", 20F);
-            confirmation_signal_button.Location = new Point(762, 768);
+            confirmation_signal_button.Location = new Point(607, 619);
             confirmation_signal_button.Name = "confirmation_signal_button";
             confirmation_signal_button.Size = new Size(284, 155);
             confirmation_signal_button.TabIndex = 40;
@@ -473,11 +474,22 @@
             confirmation_signal_button.UseVisualStyleBackColor = true;
             confirmation_signal_button.Click += confirmation_signal_button_Click;
             // 
+            // auto_drive_button
+            // 
+            auto_drive_button.Font = new Font("맑은 고딕", 20F);
+            auto_drive_button.Location = new Point(1005, 619);
+            auto_drive_button.Name = "auto_drive_button";
+            auto_drive_button.Size = new Size(284, 155);
+            auto_drive_button.TabIndex = 41;
+            auto_drive_button.Text = "Auto drive with yaml";
+            auto_drive_button.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1901, 1283);
+            Controls.Add(auto_drive_button);
             Controls.Add(confirmation_signal_button);
             Controls.Add(load_yaml);
             Controls.Add(save_yaml);
@@ -566,5 +578,6 @@
         private Button save_yaml;
         private Button load_yaml;
         private Button confirmation_signal_button;
+        private Button auto_drive_button;
     }
 }

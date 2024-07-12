@@ -29,6 +29,7 @@ namespace test_ros2
         private Stopwatch moveRightStopwatch = new Stopwatch();
         private Stopwatch leftSpinStopwatch = new Stopwatch();
         private Stopwatch rightSpinStopwatch = new Stopwatch();
+        private bool isManualMode;
 
         public Form1()
         {
@@ -63,13 +64,39 @@ namespace test_ros2
                 subscriber = new Subscriber();
                 subscriber.Initialize("192.168.0.143", 12346);
                 subscriber.MessageReceived += Subscriber_MessageReceived;
-                MessageBox.Show($"Subscribed to /cylinder/ticks topic via ZeroMQ");
+                MessageBox.Show($"Subscribed to ROS2 robot topics via ZeroMQ");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to initialize Subscriber: {ex.Message}");
                 Close();
                 return;
+            }
+
+            using (var modeSelectionForm = new Form2())
+            {
+                var result = modeSelectionForm.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    isManualMode = modeSelectionForm.IsManual;
+                    if (isManualMode)
+                    {
+                        MessageBox.Show("Manual mode selected.");
+                        SetAllButtonsEnabled(true);
+                        auto_drive_button.Enabled = false;
+                    }
+                    else
+                    {
+                        MessageBox.Show("Automatic mode selected.");
+                        SetAllButtonsEnabled(false);
+                        auto_drive_button.Enabled = true;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("No mode selected, closing application.");
+                    Close();
+                }
             }
 
             SetAllJointControlButtonsEnabled(false);
@@ -113,7 +140,7 @@ namespace test_ros2
                                 }
 
                                 manipulator_connect.Enabled = false;
-                                SetAllJointControlButtonsEnabled(true);
+                                SetAllJointControlButtonsEnabled(isManualMode);
                             }
                         }));
                     }
@@ -168,6 +195,7 @@ namespace test_ros2
                 if (completedTask == delayTask)
                 {
                     MessageBox.Show("Failed to receive joint values. Please check the robot.");
+                    SetAllButtonsEnabled(true);
                     manipulator_connect.Enabled = true;
                 }
                 else
@@ -183,7 +211,16 @@ namespace test_ros2
             cylinder_up.Enabled = enabled;
             cylinder_stop.Enabled = enabled;
             cylinder_down.Enabled = enabled;
-            emergency_stop.Enabled = enabled;
+            move_forward.Enabled = enabled;
+            move_backward.Enabled = enabled;
+            move_left.Enabled = enabled;
+            move_right.Enabled = enabled;
+            left_spin.Enabled = enabled;
+            right_spin.Enabled = enabled;
+            area_numUpDown.Enabled = enabled;
+            growth_numUpDown.Enabled = enabled;
+            save_yaml.Enabled = enabled;
+            confirmation_signal_button.Enabled = enabled;
             if (enabled)
             {
                 manipulator_connect.Enabled = true;
