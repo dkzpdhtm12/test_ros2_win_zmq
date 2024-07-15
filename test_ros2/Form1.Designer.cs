@@ -462,6 +462,7 @@
             load_yaml.TabIndex = 39;
             load_yaml.Text = "Load Yaml";
             load_yaml.UseVisualStyleBackColor = true;
+            load_yaml.Click += load_yaml_Click;
             // 
             // confirmation_signal_button
             // 
@@ -483,6 +484,7 @@
             auto_drive_button.TabIndex = 41;
             auto_drive_button.Text = "Auto drive with yaml";
             auto_drive_button.UseVisualStyleBackColor = true;
+            auto_drive_button.Click += auto_drive_button_Click;
             // 
             // Form1
             // 

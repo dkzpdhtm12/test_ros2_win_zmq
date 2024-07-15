@@ -145,11 +145,44 @@ namespace test_ros2
                         }));
                     }
                 }
+
+                if (topic == "/send_yaml_data")
+                {
+                    var yamlData = jsonData["message"]?["data"];
+                    if (yamlData != null)
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            ShowYamlData(yamlData.ToString());
+                        }));
+                    }
+                }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error handling message: {ex.Message}");
             }
+        }
+
+        private void ShowYamlData(string yamlContent)
+        {
+            Form yamlForm = new Form
+            {
+                Text = "YAML Data",
+                Size = new System.Drawing.Size(400, 600)
+            };
+
+            TextBox textBox = new TextBox
+            {
+                Multiline = true,
+                Dock = DockStyle.Fill,
+                ScrollBars = ScrollBars.Vertical,
+                Text = yamlContent,
+                ReadOnly = true
+            };
+
+            yamlForm.Controls.Add(textBox);
+            yamlForm.ShowDialog();
         }
 
         private async void manipulator_connect_Click(object sender, EventArgs e)
@@ -1190,6 +1223,20 @@ namespace test_ros2
             PublishTopicMessage("/save_yaml", jsonMessage);
         }
 
+        private void load_yaml_Click(object sender, EventArgs e)
+        {
+            var message = new
+            {
+                topic = "/load_yaml",
+                message = new
+                {
+                    data = 1
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/load_yaml", jsonMessage);
+        }
+
         private void confirmation_signal_button_Click(object sender, EventArgs e)
         {
             var message = new
@@ -1202,6 +1249,20 @@ namespace test_ros2
             };
             string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
             PublishTopicMessage("/confirmation_signal", jsonMessage);
+        }
+
+        private void auto_drive_button_Click(object sender, EventArgs e)
+        {
+            var message = new
+            {
+                topic = "/auto_drive_signal",
+                message = new
+                {
+                    data = 1
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/auto_drive_signal", jsonMessage);
         }
         ////////////////////////////³¡
     }
