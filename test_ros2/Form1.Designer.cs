@@ -68,6 +68,7 @@
             load_yaml = new Button();
             confirmation_signal_button = new Button();
             auto_drive_button = new Button();
+            robot_current_work = new Label();
             ((System.ComponentModel.ISupportInitialize)area_numUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)growth_numUpDown).BeginInit();
             SuspendLayout();
@@ -486,11 +487,22 @@
             auto_drive_button.UseVisualStyleBackColor = true;
             auto_drive_button.Click += auto_drive_button_Click;
             // 
+            // robot_current_work
+            // 
+            robot_current_work.AutoSize = true;
+            robot_current_work.Font = new Font("맑은 고딕", 32F);
+            robot_current_work.Location = new Point(589, 197);
+            robot_current_work.Name = "robot_current_work";
+            robot_current_work.Size = new Size(629, 86);
+            robot_current_work.TabIndex = 42;
+            robot_current_work.Text = "Robot Current Work";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1901, 1283);
+            Controls.Add(robot_current_work);
             Controls.Add(auto_drive_button);
             Controls.Add(confirmation_signal_button);
             Controls.Add(load_yaml);
@@ -581,5 +593,6 @@
         private Button load_yaml;
         private Button confirmation_signal_button;
         private Button auto_drive_button;
+        private Label robot_current_work;
     }
 }

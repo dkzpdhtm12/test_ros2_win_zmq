@@ -146,6 +146,15 @@ namespace test_ros2
                     }
                 }
 
+                if (topic == "/send_robot_current_work")
+                {
+                    string data = jsonData["message"]?["data"]?.ToString() ?? string.Empty;
+                    Invoke(new Action(() =>
+                    {
+                        robot_current_work.Text = $"Current: {data}";
+                    }));
+                }
+
                 if (topic == "/send_yaml_data")
                 {
                     var yamlData = jsonData["message"]?["data"];
