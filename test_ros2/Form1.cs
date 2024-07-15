@@ -62,7 +62,7 @@ namespace test_ros2
             try
             {
                 subscriber = new Subscriber();
-                subscriber.Initialize("192.168.0.143", 12346);
+                subscriber.Initialize("192.168.0.91", 12346); //143
                 subscriber.MessageReceived += Subscriber_MessageReceived;
                 MessageBox.Show($"Subscribed to ROS2 robot topics via ZeroMQ");
             }
@@ -109,62 +109,65 @@ namespace test_ros2
                 var jsonData = JObject.Parse(message);
                 string? topic = jsonData["topic"]?.ToString();
 
-                if (topic == "/cylinder/ticks")
+                switch (topic)
                 {
-                    int data = (int)(jsonData["message"]?["data"] ?? 0);
-                    Invoke(new Action(() =>
-                    {
-                        labelTicks.Text = $"Cylinder Height: {data} cm";
-                    }));
-                }
-
-                if (topic == "/joint_states")
-                {
-                    var positions = jsonData["message"]?["positions"]?.ToObject<double[]>();
-                    if (positions != null && positions.Length >= 6)
-                    {
+                    case "/cylinder/ticks":
+                        int data = (int)(jsonData["message"]?["data"] ?? 0);
                         Invoke(new Action(() =>
                         {
-                            joint1_value.Text = $"joint1_value: {positions[0] * 180 / 3.14}";
-                            joint2_value.Text = $"joint2_value: {positions[1] * 180 / 3.14}";
-                            joint3_value.Text = $"joint3_value: {positions[2] * 180 / 3.14}";
-                            joint4_value.Text = $"joint4_value: {positions[3] * 180 / 3.14}";
-                            joint5_value.Text = $"joint5_value: {positions[4] * 180 / 3.14}";
-                            joint6_value.Text = $"joint6_value: {positions[5] * 180 / 3.14}";
+                            labelTicks.Text = $"Cylinder Height: {data} cm";
+                        }));
+                        break;
 
-                            lock (tcsLock)
+                    case "/joint_states":
+                        var positions = jsonData["message"]?["positions"]?.ToObject<double[]>();
+                        if (positions != null && positions.Length >= 6)
+                        {
+                            Invoke(new Action(() =>
                             {
-                                if (tcs != null && !tcs.Task.IsCompleted)
+                                joint1_value.Text = $"joint1_value: {positions[0] * 180 / 3.14}";
+                                joint2_value.Text = $"joint2_value: {positions[1] * 180 / 3.14}";
+                                joint3_value.Text = $"joint3_value: {positions[2] * 180 / 3.14}";
+                                joint4_value.Text = $"joint4_value: {positions[3] * 180 / 3.14}";
+                                joint5_value.Text = $"joint5_value: {positions[4] * 180 / 3.14}";
+                                joint6_value.Text = $"joint6_value: {positions[5] * 180 / 3.14}";
+
+                                lock (tcsLock)
                                 {
-                                    tcs.SetResult(true);
+                                    if (tcs != null && !tcs.Task.IsCompleted)
+                                    {
+                                        tcs.SetResult(true);
+                                    }
+
+                                    manipulator_connect.Enabled = false;
+                                    SetAllJointControlButtonsEnabled(isManualMode);
                                 }
+                            }));
+                        }
+                        break;
 
-                                manipulator_connect.Enabled = false;
-                                SetAllJointControlButtonsEnabled(isManualMode);
-                            }
-                        }));
-                    }
-                }
-
-                if (topic == "/robot_current_work")
-                {
-                    string data = jsonData["message"]?["data"]?.ToString() ?? string.Empty;
-                    Invoke(new Action(() =>
-                    {
-                        robot_current_work.Text = $"Current: {data}";
-                    }));
-                }
-
-                if (topic == "/send_yaml_data")
-                {
-                    var yamlData = jsonData["message"]?["data"];
-                    if (yamlData != null)
-                    {
+                    case "/robot_current_work":
+                        string currentWorkData = jsonData["message"]?["data"]?.ToString() ?? string.Empty;
                         Invoke(new Action(() =>
                         {
-                            ShowYamlData(yamlData.ToString());
+                            robot_current_work.Text = $"Current: {currentWorkData}";
                         }));
-                    }
+                        break;
+
+                    case "/send_yaml_data":
+                        var yamlData = jsonData["message"]?["data"];
+                        if (yamlData != null)
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                ShowYamlData(yamlData.ToString());
+                            }));
+                        }
+                        break;
+
+                    default:
+                        Console.WriteLine($"Unknown topic: {topic}");
+                        break;
                 }
             }
             catch (Exception ex)
