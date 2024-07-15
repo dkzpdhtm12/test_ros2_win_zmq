@@ -146,7 +146,7 @@ namespace test_ros2
                     }
                 }
 
-                if (topic == "/send_robot_current_work")
+                if (topic == "/robot_current_work")
                 {
                     string data = jsonData["message"]?["data"]?.ToString() ?? string.Empty;
                     Invoke(new Action(() =>

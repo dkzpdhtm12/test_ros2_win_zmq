@@ -491,7 +491,7 @@
             // 
             robot_current_work.AutoSize = true;
             robot_current_work.Font = new Font("맑은 고딕", 32F);
-            robot_current_work.Location = new Point(589, 197);
+            robot_current_work.Location = new Point(539, 197);
             robot_current_work.Name = "robot_current_work";
             robot_current_work.Size = new Size(629, 86);
             robot_current_work.TabIndex = 42;
