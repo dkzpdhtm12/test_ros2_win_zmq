@@ -266,6 +266,7 @@ namespace test_ros2
             growth_numUpDown.Enabled = enabled;
             save_yaml.Enabled = enabled;
             confirmation_signal_button.Enabled = enabled;
+            photo_done.Enabled = enabled;
             if (enabled)
             {
                 manipulator_connect.Enabled = true;
@@ -1275,6 +1276,20 @@ namespace test_ros2
             };
             string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
             PublishTopicMessage("/auto_drive_signal", jsonMessage);
+        }
+
+        private void photo_done_Click(object sender, EventArgs e)
+        {
+            var message = new
+            {
+                topic = "/photo_done",
+                message = new
+                {
+                    data = 1
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            PublishTopicMessage("/photo_done", jsonMessage);
         }
         ////////////////////////////³¡
     }

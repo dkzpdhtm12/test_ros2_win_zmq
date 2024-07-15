@@ -69,6 +69,7 @@
             confirmation_signal_button = new Button();
             auto_drive_button = new Button();
             robot_current_work = new Label();
+            photo_done = new Button();
             ((System.ComponentModel.ISupportInitialize)area_numUpDown).BeginInit();
             ((System.ComponentModel.ISupportInitialize)growth_numUpDown).BeginInit();
             SuspendLayout();
@@ -468,7 +469,7 @@
             // confirmation_signal_button
             // 
             confirmation_signal_button.Font = new Font("맑은 고딕", 20F);
-            confirmation_signal_button.Location = new Point(607, 619);
+            confirmation_signal_button.Location = new Point(651, 730);
             confirmation_signal_button.Name = "confirmation_signal_button";
             confirmation_signal_button.Size = new Size(284, 155);
             confirmation_signal_button.TabIndex = 40;
@@ -479,7 +480,7 @@
             // auto_drive_button
             // 
             auto_drive_button.Font = new Font("맑은 고딕", 20F);
-            auto_drive_button.Location = new Point(1005, 619);
+            auto_drive_button.Location = new Point(1049, 730);
             auto_drive_button.Name = "auto_drive_button";
             auto_drive_button.Size = new Size(284, 155);
             auto_drive_button.TabIndex = 41;
@@ -491,17 +492,29 @@
             // 
             robot_current_work.AutoSize = true;
             robot_current_work.Font = new Font("맑은 고딕", 32F);
-            robot_current_work.Location = new Point(539, 197);
+            robot_current_work.Location = new Point(525, 130);
             robot_current_work.Name = "robot_current_work";
             robot_current_work.Size = new Size(629, 86);
             robot_current_work.TabIndex = 42;
             robot_current_work.Text = "Robot Current Work";
+            // 
+            // photo_done
+            // 
+            photo_done.Font = new Font("맑은 고딕", 20F);
+            photo_done.Location = new Point(651, 565);
+            photo_done.Name = "photo_done";
+            photo_done.Size = new Size(284, 130);
+            photo_done.TabIndex = 43;
+            photo_done.Text = "Photo Done";
+            photo_done.UseVisualStyleBackColor = true;
+            photo_done.Click += photo_done_Click;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1901, 1283);
+            Controls.Add(photo_done);
             Controls.Add(robot_current_work);
             Controls.Add(auto_drive_button);
             Controls.Add(confirmation_signal_button);
@@ -594,5 +607,6 @@
         private Button confirmation_signal_button;
         private Button auto_drive_button;
         private Label robot_current_work;
+        private Button photo_done;
     }
 }
