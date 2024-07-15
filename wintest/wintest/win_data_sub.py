@@ -7,8 +7,8 @@ import subprocess
 from rclpy.node import Node
 from dsr_msgs2.srv import MoveJoint
 from sensor_msgs.msg import JointState
-from std_msgs.msg import Int8, Int32, Bool
 from geometry_msgs.msg import Twist, Vector3
+from std_msgs.msg import Int8, Int32, Bool, String
 
 PI = 3.141592
 
@@ -34,6 +34,12 @@ class WindowsCommunication(Node):
             JointState,
             '/joint_states',
             self.joint_states_ros2_topic_subscriber_callback,
+            10)
+
+        self.robot_current_work_ros2_topic_subscriber = self.create_subscription(
+            String,
+            '/robot_current_work',
+            self.robot_current_work_ros2_topic_subscriber_callback,
             10)
 
         self.timer = self.create_timer(0.1, self.win_pub_listener_callback)
@@ -168,6 +174,17 @@ class WindowsCommunication(Node):
         })
         self.zmq_socket_pub.send_string(json_data)
         self.joints_list = msg.position
+
+    def robot_current_work_ros2_topic_subscriber_callback(self, msg):
+        json_data = json.dumps({
+            'topic': '/robot_current_work',
+            'message': {
+                'data': msg.data
+            }
+        })
+        self.zmq_socket_pub.send_string(json_data)
+        print(json_data)
+        self.robot_current_work = msg.data
 
     def handle_save_yaml(self, area, growth):
         joints_list = self.joints_list
