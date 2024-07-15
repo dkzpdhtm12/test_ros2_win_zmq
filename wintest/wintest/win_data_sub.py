@@ -108,6 +108,11 @@ class WindowsCommunication(Node):
                     msg.data = True
                     self.create_publisher(Bool, '/pushed1', 10).publish(msg)
 
+                elif topic_name == '/photo_done':
+                    msg = Bool()
+                    msg.data = True
+                    self.create_publisher(Bool, '/photo_done', 10).publish(msg)
+
                 else:
                     self.get_logger().error(f'Undefined topic message received. {message} Check topic name or Add function by topic name')
 
