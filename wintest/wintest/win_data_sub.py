@@ -183,7 +183,6 @@ class WindowsCommunication(Node):
             }
         })
         self.zmq_socket_pub.send_string(json_data)
-        print(json_data)
         self.robot_current_work = msg.data
 
     def handle_save_yaml(self, area, growth):
