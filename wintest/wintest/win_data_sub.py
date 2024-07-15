@@ -1,13 +1,14 @@
+
+import zmq
+import json
+import yaml
 import rclpy
+import subprocess
 from rclpy.node import Node
+from dsr_msgs2.srv import MoveJoint
+from sensor_msgs.msg import JointState
 from std_msgs.msg import Int8, Int32, Bool
 from geometry_msgs.msg import Twist, Vector3
-from sensor_msgs.msg import JointState
-from dsr_msgs2.srv import MoveJoint
-import json
-import zmq
-import subprocess
-import yaml
 
 PI = 3.141592
 
@@ -88,13 +89,21 @@ class WindowsCommunication(Node):
                     growth = message_data[1]
                     self.handle_save_yaml(area, growth)
 
+                elif topic_name == '/load_yaml':
+                    self.handle_load_yaml()
+
                 elif topic_name == '/confirmation_signal':
                     msg = Bool()
                     msg.data = True
                     self.create_publisher(Bool, '/confirmation_signal', 10).publish(msg)
 
+                elif topic_name == '/auto_drive_signal':
+                    msg = Bool()
+                    msg.data = True
+                    self.create_publisher(Bool, '/pushed1', 10).publish(msg)
+
                 else:
-                    pass
+                    self.get_logger().error(f'Undefined topic message received. {message} Check topic name or Add function by topic name')
 
         except zmq.Again:
             pass
@@ -213,6 +222,25 @@ class WindowsCommunication(Node):
         except Exception as e:
             self.get_logger().error(f'Unexpected error: {e}')
             return False
+
+    def handle_load_yaml(self):
+        try:
+            with open('config.yaml', 'r') as yaml_file:
+                yaml_data = yaml.safe_load(yaml_file)
+            json_data = json.dumps({
+                'topic': '/send_yaml_data',
+                'message': {
+                    'data': yaml_data
+                }
+            })
+            self.zmq_socket_pub.send_string(json_data)
+            self.get_logger().info('YAML data sent successfully.')
+        except FileNotFoundError:
+            self.get_logger().error('YAML file not found.')
+        except yaml.YAMLError as e:
+            self.get_logger().error(f'Error reading YAML file: {e}')
+        except Exception as e:
+            self.get_logger().error(f'Unexpected error: {e}')
 
 def main(args=None):
     rclpy.init(args=args)
