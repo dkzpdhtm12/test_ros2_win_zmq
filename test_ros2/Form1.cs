@@ -7,6 +7,7 @@ using NetMQ;
 using NetMQ.Sockets;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
+using System.Drawing.Printing;
 
 namespace test_ros2
 {
@@ -17,12 +18,6 @@ namespace test_ros2
         private Subscriber? subscriber;
         private TaskCompletionSource<bool>? tcs;
         private readonly object tcsLock = new object();
-        private Stopwatch joint1Stopwatch = new Stopwatch();
-        private Stopwatch joint2Stopwatch = new Stopwatch();
-        private Stopwatch joint3Stopwatch = new Stopwatch();
-        private Stopwatch joint4Stopwatch = new Stopwatch();
-        private Stopwatch joint5Stopwatch = new Stopwatch();
-        private Stopwatch joint6Stopwatch = new Stopwatch();
         private Stopwatch moveForwardStopwatch = new Stopwatch();
         private Stopwatch moveBackwardStopwatch = new Stopwatch();
         private Stopwatch moveLeftStopwatch = new Stopwatch();
@@ -30,10 +25,38 @@ namespace test_ros2
         private Stopwatch leftSpinStopwatch = new Stopwatch();
         private Stopwatch rightSpinStopwatch = new Stopwatch();
         private bool isManualMode;
+        private JointController jointController;
 
         public Form1()
         {
             InitializeComponent();
+
+            Label[] jointLabels = new Label[]
+            {
+                joint1_value, joint2_value, joint3_value,
+                joint4_value, joint5_value, joint6_value
+            };
+
+            jointController = new JointController(jointLabels, PublishTopicMessage);
+
+            Button[,] jointButtons = new Button[,]
+            {
+                { joint1_value_up, joint1_value_down },
+                { joint2_value_up, joint2_value_down },
+                { joint3_value_up, joint3_value_down },
+                { joint4_value_up, joint4_value_down },
+                { joint5_value_up, joint5_value_down },
+                { joint6_value_up, joint6_value_down }
+            };
+
+            for (int jointIndex = 0; jointIndex < 6; jointIndex++)
+            {
+                int targetJoint = jointIndex;
+                jointButtons[targetJoint, 0].MouseDown += (s, e) => jointController.JointUpMouseDown(s, e, targetJoint);
+                jointButtons[targetJoint, 0].MouseUp += jointController.JointMouseUp;
+                jointButtons[targetJoint, 1].MouseDown += (s, e) => jointController.JointDownMouseDown(s, e, targetJoint);
+                jointButtons[targetJoint, 1].MouseUp += jointController.JointMouseUp;
+            }
 
             localIP = GetLocalIPAddress();
             if (string.IsNullOrEmpty(localIP))
@@ -62,7 +85,7 @@ namespace test_ros2
             try
             {
                 subscriber = new Subscriber();
-                subscriber.Initialize("192.168.0.91", 12346); //143
+                subscriber.Initialize("192.168.0.143", 12346); //91
                 subscriber.MessageReceived += Subscriber_MessageReceived;
                 MessageBox.Show($"Subscribed to ROS2 robot topics via ZeroMQ");
             }
@@ -125,12 +148,12 @@ namespace test_ros2
                         {
                             Invoke(new Action(() =>
                             {
-                                joint1_value.Text = $"joint1_value: {positions[0] * 180 / 3.14}";
-                                joint2_value.Text = $"joint2_value: {positions[1] * 180 / 3.14}";
-                                joint3_value.Text = $"joint3_value: {positions[2] * 180 / 3.14}";
-                                joint4_value.Text = $"joint4_value: {positions[3] * 180 / 3.14}";
-                                joint5_value.Text = $"joint5_value: {positions[4] * 180 / 3.14}";
-                                joint6_value.Text = $"joint6_value: {positions[5] * 180 / 3.14}";
+                                Label[] jointLabels = { joint1_value, joint2_value, joint3_value, joint4_value, joint5_value, joint6_value };
+
+                                for (int i = 0; i < jointLabels.Length; i++)
+                                {
+                                    jointLabels[i].Text = $"joint{i + 1}_value: {positions[i] * 180 / 3.14:F2}";
+                                }
 
                                 lock (tcsLock)
                                 {
@@ -345,595 +368,7 @@ namespace test_ros2
             PublishJoyCommand("/joy_command", 7);
         }
         /// <summary>
-        /// /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// </summary>
-        private void joint1_value_up_Click(object sender, EventArgs e)
-        {
-            joint1Stopwatch.Start();
-        }
-
-        private async void joint1_value_up_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint1Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint1Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint1Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint1Value += elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint1_value_up_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint1Stopwatch.Stop();
-        }
-
-        private void joint1_value_down_Click(object sender, EventArgs e)
-        {
-            joint1Stopwatch.Start();
-        }
-
-        private async void joint1_value_down_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint1Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint1Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint1Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint1Value -= elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint1_value_down_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint1Stopwatch.Stop();
-        }
-        /// <summary>
-        /// /////////////////////////////////////////////////////////////////////////////////////////////////
-        /// </summary>
-        private void joint2_value_up_Click(object sender, EventArgs e)
-        {
-            joint2Stopwatch.Start();
-        }
-
-        private async void joint2_value_up_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint2Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint2Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint2Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint2Value += elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint2_value_up_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint2Stopwatch.Stop();
-        }
-
-        private void joint2_value_down_Click(object sender, EventArgs e)
-        {
-            joint2Stopwatch.Start();
-        }
-
-        private async void joint2_value_down_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint2Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint2Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint2Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint2Value -= elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint2_value_down_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint2Stopwatch.Stop();
-        }
-        /// <summary>
-        /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// </summary>
-        private void joint3_value_up_Click(object sender, EventArgs e)
-        {
-            joint3Stopwatch.Start();
-        }
-
-        private async void joint3_value_up_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint3Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint3Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint3Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint3Value += elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint3_value_up_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint3Stopwatch.Stop();
-        }
-
-        private void joint3_value_down_Click(object sender, EventArgs e)
-        {
-            joint3Stopwatch.Start();
-        }
-
-        private async void joint3_value_down_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint3Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint3Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint3Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint3Value -= elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint3_value_down_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint3Stopwatch.Stop();
-        }
-        /// <summary>
-        /// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// </summary>
-        private void joint4_value_up_Click(object sender, EventArgs e)
-        {
-            joint4Stopwatch.Start();
-        }
-
-        private async void joint4_value_up_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint4Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint4Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint4Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint4Value += elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint4_value_up_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint4Stopwatch.Stop();
-        }
-
-        private void joint4_value_down_Click(object sender, EventArgs e)
-        {
-            joint4Stopwatch.Start();
-        }
-
-        private async void joint4_value_down_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint4Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint4Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint4Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint4Value -= elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint4_value_down_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint4Stopwatch.Stop();
-        }
-        /// <summary>
-        /// //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// </summary>
-        private void joint5_value_up_Click(object sender, EventArgs e)
-        {
-            joint5Stopwatch.Start();
-        }
-
-        private async void joint5_value_up_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint5Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint5Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint5Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint5Value += elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint5_value_up_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint5Stopwatch.Stop();
-        }
-
-        private void joint5_value_down_Click(object sender, EventArgs e)
-        {
-            joint5Stopwatch.Start();
-        }
-
-        private async void joint5_value_down_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint5Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint5Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint5Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint5Value -= elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint5_value_down_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint5Stopwatch.Stop();
-        }
-        /// <summary>
-        /// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        /// </summary>
-        private void joint6_value_up_Click(object sender, EventArgs e)
-        {
-            joint6Stopwatch.Start();
-        }
-
-        private async void joint6_value_up_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint6Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint6Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint6Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint6Value += elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint6_value_up_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint6Stopwatch.Stop();
-        }
-
-        private void joint6_value_down_Click(object sender, EventArgs e)
-        {
-            joint6Stopwatch.Start();
-        }
-
-        private async void joint6_value_down_MouseDown(object sender, MouseEventArgs e)
-        {
-            joint6Stopwatch.Restart();
-
-            while (true)
-            {
-                if (!joint6Stopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                double elapsedSeconds = joint6Stopwatch.Elapsed.TotalSeconds;
-
-                double joint1Value = double.Parse(joint1_value.Text.Replace("joint1_value: ", ""));
-                double joint2Value = double.Parse(joint2_value.Text.Replace("joint2_value: ", ""));
-                double joint3Value = double.Parse(joint3_value.Text.Replace("joint3_value: ", ""));
-                double joint4Value = double.Parse(joint4_value.Text.Replace("joint4_value: ", ""));
-                double joint5Value = double.Parse(joint5_value.Text.Replace("joint5_value: ", ""));
-                double joint6Value = double.Parse(joint6_value.Text.Replace("joint6_value: ", ""));
-
-                joint6Value -= elapsedSeconds;
-
-                var jointRequestMessage = new
-                {
-                    topic = "/joint_request",
-                    message = new
-                    {
-                        layout = new { dim = new object[] { }, data_offset = 0 },
-                        data = new double[] { joint1Value, joint2Value, joint3Value, joint4Value, joint5Value, joint6Value }
-                    }
-                };
-                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
-                PublishTopicMessage("/joint_request", jsonMessage);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void joint6_value_down_MouseUp(object sender, MouseEventArgs e)
-        {
-            joint6Stopwatch.Stop();
-        }
-        /// <summary>
-        /// ////////////////////////조인트 끝 AMR 방향제어 시작 앞쪽
+        /// ////////////////////////AMR 방향제어 시작 앞쪽
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -1291,7 +726,6 @@ namespace test_ros2
             string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
             PublishTopicMessage("/photo_done", jsonMessage);
         }
-        ////////////////////////////끝
     }
 
     public class Publisher : IDisposable
@@ -1387,6 +821,72 @@ namespace test_ros2
             isRunning = false;
             subscriberSocket?.Close();
             subscriberSocket?.Dispose();
+        }
+    }
+
+    public class JointController
+    {
+        private Stopwatch jointStopwatch;
+        private Label[] jointLabels;
+        private Action<string, string> publishMessage;
+
+        public JointController(Label[] jointLabels, Action<string, string> publishMessage)
+        {
+            this.jointLabels = jointLabels;
+            this.jointStopwatch = new Stopwatch();
+            this.publishMessage = publishMessage;
+        }
+
+        public void JointUpMouseDown(object? sender, MouseEventArgs e, int jointIndex)
+        {
+            jointStopwatch.Restart();
+            UpdateJointValue(1, jointIndex);
+        }
+
+        public void JointDownMouseDown(object? sender, MouseEventArgs e, int jointIndex)
+        {
+            jointStopwatch.Restart();
+            UpdateJointValue(-1, jointIndex);
+        }
+
+        public void JointMouseUp(object? sender, MouseEventArgs e)
+        {
+            jointStopwatch.Stop();
+        }
+
+        private async void UpdateJointValue(int direction, int jointIndex)
+        {
+            while (jointStopwatch.IsRunning)
+            {
+                double elapsedSeconds = jointStopwatch.Elapsed.TotalSeconds;
+
+                double[] jointValues = new double[jointLabels.Length];
+                for (int i = 0; i < jointLabels.Length; i++)
+                {
+                    jointValues[i] = double.Parse(jointLabels[i].Text.Replace($"joint{i + 1}_value: ", ""));
+                }
+
+                jointValues[jointIndex] += direction * elapsedSeconds;
+
+                for (int i = 0; i < jointLabels.Length; i++)
+                {
+                    jointLabels[i].Text = $"joint{i + 1}_value: {jointValues[i]:F2}";
+                }
+
+                var jointRequestMessage = new
+                {
+                    topic = "/joint_request",
+                    message = new
+                    {
+                        layout = new { dim = new object[] { }, data_offset = 0 },
+                        data = jointValues
+                    }
+                };
+                string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(jointRequestMessage);
+                publishMessage("/joint_request", jsonMessage);
+
+                await Task.Delay(100);
+            }
         }
     }
 
