@@ -16,6 +16,9 @@ namespace test_ros2
         private readonly string localIP;
         private Publisher? publisher;
         private Subscriber? subscriber;
+        private const int PublisherPort = 12345;
+        private const int SubscriberPort = 12346;
+        private const string SubscribeRobotIP = "192.168.0.143";// 91
         private TaskCompletionSource<bool>? tcs;
         private readonly object tcsLock = new object();
         private bool isManualMode;
@@ -68,9 +71,9 @@ namespace test_ros2
             try
             {
                 publisher = new Publisher();
-                publisher.Initialize(localIP, 12345);
-                MessageBox.Show($"Publisher bound to {localIP}:12345");
-                labelIPAddress.Text = $"IP Address: {localIP}:12345";
+                publisher.Initialize(localIP, PublisherPort);
+                MessageBox.Show($"Publisher bound to {localIP}:{PublisherPort}");
+                labelIPAddress.Text = $"IP Address: {localIP}:{SubscriberPort}";
             }
             catch (Exception ex)
             {
@@ -83,7 +86,7 @@ namespace test_ros2
             try
             {
                 subscriber = new Subscriber();
-                subscriber.Initialize("192.168.0.143", 12346); //91
+                subscriber.Initialize(SubscribeRobotIP, SubscriberPort);
                 subscriber.MessageReceived += Subscriber_MessageReceived;
                 MessageBox.Show($"Subscribed to ROS2 robot topics via ZeroMQ");
             }
@@ -123,6 +126,19 @@ namespace test_ros2
             SetAllJointControlButtonsEnabled(false);
         }
 
+        private string GetLocalIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+            return string.Empty;
+        }
+
         private void InitializeAmrButtons()
         {
             amrController.BindButton(move_forward, AmrDirection.Forward);
@@ -131,6 +147,44 @@ namespace test_ros2
             amrController.BindButton(move_right, AmrDirection.Right);
             amrController.BindButton(left_spin, AmrDirection.LeftSpin);
             amrController.BindButton(right_spin, AmrDirection.RightSpin);
+        }
+
+        private void SetAllButtonsEnabled(bool enabled)
+        {
+            cylinder_up.Enabled = enabled;
+            cylinder_stop.Enabled = enabled;
+            cylinder_down.Enabled = enabled;
+            move_forward.Enabled = enabled;
+            move_backward.Enabled = enabled;
+            move_left.Enabled = enabled;
+            move_right.Enabled = enabled;
+            left_spin.Enabled = enabled;
+            right_spin.Enabled = enabled;
+            area_numUpDown.Enabled = enabled;
+            growth_numUpDown.Enabled = enabled;
+            save_yaml.Enabled = enabled;
+            confirmation_signal_button.Enabled = enabled;
+            photo_done.Enabled = enabled;
+            if (enabled)
+            {
+                manipulator_connect.Enabled = true;
+            }
+        }
+
+        private void SetAllJointControlButtonsEnabled(bool enabled)
+        {
+            joint1_value_up.Enabled = enabled;
+            joint2_value_up.Enabled = enabled;
+            joint3_value_up.Enabled = enabled;
+            joint4_value_up.Enabled = enabled;
+            joint5_value_up.Enabled = enabled;
+            joint6_value_up.Enabled = enabled;
+            joint1_value_down.Enabled = enabled;
+            joint2_value_down.Enabled = enabled;
+            joint3_value_down.Enabled = enabled;
+            joint4_value_down.Enabled = enabled;
+            joint5_value_down.Enabled = enabled;
+            joint6_value_down.Enabled = enabled;
         }
 
         private void Subscriber_MessageReceived(object? sender, string message)
@@ -282,79 +336,6 @@ namespace test_ros2
             }
         }
 
-        private void SetAllButtonsEnabled(bool enabled)
-        {
-            cylinder_up.Enabled = enabled;
-            cylinder_stop.Enabled = enabled;
-            cylinder_down.Enabled = enabled;
-            move_forward.Enabled = enabled;
-            move_backward.Enabled = enabled;
-            move_left.Enabled = enabled;
-            move_right.Enabled = enabled;
-            left_spin.Enabled = enabled;
-            right_spin.Enabled = enabled;
-            area_numUpDown.Enabled = enabled;
-            growth_numUpDown.Enabled = enabled;
-            save_yaml.Enabled = enabled;
-            confirmation_signal_button.Enabled = enabled;
-            photo_done.Enabled = enabled;
-            if (enabled)
-            {
-                manipulator_connect.Enabled = true;
-            }
-        }
-
-        private void SetAllJointControlButtonsEnabled(bool enabled)
-        {
-            joint1_value_up.Enabled = enabled;
-            joint2_value_up.Enabled = enabled;
-            joint3_value_up.Enabled = enabled;
-            joint4_value_up.Enabled = enabled;
-            joint5_value_up.Enabled = enabled;
-            joint6_value_up.Enabled = enabled;
-            joint1_value_down.Enabled = enabled;
-            joint2_value_down.Enabled = enabled;
-            joint3_value_down.Enabled = enabled;
-            joint4_value_down.Enabled = enabled;
-            joint5_value_down.Enabled = enabled;
-            joint6_value_down.Enabled = enabled;
-        }
-
-        private void PublishJoyCommand(string topic, sbyte commandValue)
-        {
-            publisher?.Publish(topic, commandValue);
-        }
-
-        private void PublishTopicMessage(string topic, string message)
-        {
-            publisher?.Publish(topic, message);
-        }
-
-        private string GetLocalIPAddress()
-        {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-            return string.Empty;
-        }
-
-        protected override void OnFormClosed(FormClosedEventArgs e)
-        {
-            base.OnFormClosed(e);
-            DisposeResources();
-        }
-
-        private void DisposeResources()
-        {
-            publisher?.Dispose();
-            subscriber?.Dispose();
-        }
-
         private void button1_Click(object sender, EventArgs e)
         {
             PublishJoyCommand("/joy_command", 8);
@@ -447,6 +428,28 @@ namespace test_ros2
             };
             string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
             PublishTopicMessage("/photo_done", jsonMessage);
+        }
+
+        private void PublishJoyCommand(string topic, sbyte commandValue)
+        {
+            publisher?.Publish(topic, commandValue);
+        }
+
+        private void PublishTopicMessage(string topic, string message)
+        {
+            publisher?.Publish(topic, message);
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            base.OnFormClosed(e);
+            DisposeResources();
+        }
+
+        private void DisposeResources()
+        {
+            publisher?.Dispose();
+            subscriber?.Dispose();
         }
     }
 
