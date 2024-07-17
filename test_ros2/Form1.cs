@@ -18,14 +18,9 @@ namespace test_ros2
         private Subscriber? subscriber;
         private TaskCompletionSource<bool>? tcs;
         private readonly object tcsLock = new object();
-        private Stopwatch moveForwardStopwatch = new Stopwatch();
-        private Stopwatch moveBackwardStopwatch = new Stopwatch();
-        private Stopwatch moveLeftStopwatch = new Stopwatch();
-        private Stopwatch moveRightStopwatch = new Stopwatch();
-        private Stopwatch leftSpinStopwatch = new Stopwatch();
-        private Stopwatch rightSpinStopwatch = new Stopwatch();
         private bool isManualMode;
         private JointController jointController;
+        private AmrController amrController;
 
         public Form1()
         {
@@ -57,6 +52,9 @@ namespace test_ros2
                 jointButtons[targetJoint, 1].MouseDown += (s, e) => jointController.JointDownMouseDown(s, e, targetJoint);
                 jointButtons[targetJoint, 1].MouseUp += jointController.JointMouseUp;
             }
+
+            amrController = new AmrController(PublishTopicMessage);
+            InitializeAmrButtons();
 
             localIP = GetLocalIPAddress();
             if (string.IsNullOrEmpty(localIP))
@@ -123,6 +121,16 @@ namespace test_ros2
             }
 
             SetAllJointControlButtonsEnabled(false);
+        }
+
+        private void InitializeAmrButtons()
+        {
+            amrController.BindButton(move_forward, AmrDirection.Forward);
+            amrController.BindButton(move_backward, AmrDirection.Backward);
+            amrController.BindButton(move_left, AmrDirection.Left);
+            amrController.BindButton(move_right, AmrDirection.Right);
+            amrController.BindButton(left_spin, AmrDirection.LeftSpin);
+            amrController.BindButton(right_spin, AmrDirection.RightSpin);
         }
 
         private void Subscriber_MessageReceived(object? sender, string message)
@@ -367,293 +375,7 @@ namespace test_ros2
             PublishJoyCommand("/joy_command", 5);
             PublishJoyCommand("/joy_command", 7);
         }
-        /// <summary>
-        /// ////////////////////////AMR 방향제어 시작 앞쪽
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void move_forward_MouseDown(object sender, MouseEventArgs e)
-        {
-            moveForwardStopwatch.Start();
-            PublishMoveForwardCommand(0.5);
-        }
-
-        private async void move_forward_MouseDownAsync(object sender, MouseEventArgs e)
-        {
-            moveForwardStopwatch.Restart();
-
-            while (true)
-            {
-                if (!moveForwardStopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                PublishMoveForwardCommand(0.5);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void move_forward_MouseUp(object sender, MouseEventArgs e)
-        {
-            moveForwardStopwatch.Stop();
-            PublishMoveForwardCommand(0.0);
-        }
-
-        private void PublishMoveForwardCommand(double value)
-        {
-            var message = new
-            {
-                topic = "/request_move_vertical",
-                message = new
-                {
-                    data = value
-                }
-            };
-            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
-            PublishTopicMessage("/request_move_vertical", jsonMessage);
-        }
-        /// <summary>
-        /// ////////////////////////조인트 끝 AMR 방향제어 시작 뒤쪽
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void move_backward_MouseDown(object sender, MouseEventArgs e)
-        {
-            moveBackwardStopwatch.Start();
-            PublishMoveBackwardCommand(-0.5);
-        }
-
-        private async void move_backward_MouseDownAsync(object sender, MouseEventArgs e)
-        {
-            moveBackwardStopwatch.Restart();
-
-            while (true)
-            {
-                if (!moveBackwardStopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                PublishMoveBackwardCommand(-0.5);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void move_backward_MouseUp(object sender, MouseEventArgs e)
-        {
-            moveBackwardStopwatch.Stop();
-            PublishMoveBackwardCommand(0.0);
-        }
-
-        private void PublishMoveBackwardCommand(double value)
-        {
-            var message = new
-            {
-                topic = "/request_move_vertical",
-                message = new
-                {
-                    data = value
-                }
-            };
-            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
-            PublishTopicMessage("/request_move_vertical", jsonMessage);
-        }
-        /// <summary>
-        /// //////////////////////////////////// 왼쪽
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void move_left_MouseDown(object sender, MouseEventArgs e)
-        {
-            moveLeftStopwatch.Start();
-            PublishLeftCommand(0.5);
-        }
-
-        private async void move_left_MouseDownAsync(object sender, MouseEventArgs e)
-        {
-            moveLeftStopwatch.Restart();
-
-            while (true)
-            {
-                if (!moveLeftStopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                PublishLeftCommand(0.5);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void move_left_MouseUp(object sender, MouseEventArgs e)
-        {
-            moveLeftStopwatch.Stop();
-            PublishLeftCommand(0.0);
-        }
-
-        private void PublishLeftCommand(double value)
-        {
-            var message = new
-            {
-                topic = "/request_move_horizontal",
-                message = new
-                {
-                    data = value
-                }
-            };
-            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
-            PublishTopicMessage("/request_move_horizontal", jsonMessage);
-        }
-        /// <summary>
-        /// ///////////////////////오른쪽
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void move_right_MouseDown(object sender, MouseEventArgs e)
-        {
-            moveRightStopwatch.Start();
-            PublishRightCommand(-0.5);
-        }
-
-        private async void move_right_MouseDownAsync(object sender, MouseEventArgs e)
-        {
-            moveRightStopwatch.Restart();
-
-            while (true)
-            {
-                if (!moveRightStopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                PublishRightCommand(-0.5);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void move_right_MouseUp(object sender, MouseEventArgs e)
-        {
-            moveRightStopwatch.Stop();
-            PublishRightCommand(0.0);
-        }
-
-        private void PublishRightCommand(double value)
-        {
-            var message = new
-            {
-                topic = "/request_move_horizontal",
-                message = new
-                {
-                    data = value
-                }
-            };
-            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
-            PublishTopicMessage("/request_move_horizontal", jsonMessage);
-        }
-        /// <summary>
-        /// /////////////////////////왼쪽 회전
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void left_spin_MouseDown(object sender, MouseEventArgs e)
-        {
-            leftSpinStopwatch.Start();
-            PublishLeftSipnCommand(0.5);
-        }
-
-        private async void left_spin_MouseDownAsync(object sender, MouseEventArgs e)
-        {
-            leftSpinStopwatch.Restart();
-
-            while (true)
-            {
-                if (!leftSpinStopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                PublishLeftSipnCommand(0.5);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void left_spin_MouseUp(object sender, MouseEventArgs e)
-        {
-            leftSpinStopwatch.Stop();
-            PublishLeftSipnCommand(0.0);
-        }
-
-        private void PublishLeftSipnCommand(double value)
-        {
-            var message = new
-            {
-                topic = "/request_move_spin",
-                message = new
-                {
-                    data = value
-                }
-            };
-            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
-            PublishTopicMessage("/request_move_spin", jsonMessage);
-        }
-        /// <summary>
-        /// /////////////////////////오른쪽 회전
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void right_spin_MouseDown(object sender, MouseEventArgs e)
-        {
-            rightSpinStopwatch.Start();
-            PublishRightSipnCommand(-0.5);
-        }
-
-        private async void right_spin_MouseDownAsync(object sender, MouseEventArgs e)
-        {
-            rightSpinStopwatch.Restart();
-
-            while (true)
-            {
-                if (!rightSpinStopwatch.IsRunning)
-                {
-                    break;
-                }
-
-                PublishRightSipnCommand(-0.5);
-
-                await Task.Delay(100);
-            }
-        }
-
-        private void right_spin_MouseUp(object sender, MouseEventArgs e)
-        {
-            rightSpinStopwatch.Stop();
-            PublishRightSipnCommand(0.0);
-        }
-
-        private void PublishRightSipnCommand(double value)
-        {
-            var message = new
-            {
-                topic = "/request_move_spin",
-                message = new
-                {
-                    data = value
-                }
-            };
-            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
-            PublishTopicMessage("/request_move_spin", jsonMessage);
-        }
-        /// <summary>
-        /// ////////////// yaml파일 저장부
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+ 
         private void save_yaml_Click(object sender, EventArgs e)
         {
             int areaValue = (int)area_numUpDown.Value;
@@ -887,6 +609,98 @@ namespace test_ros2
 
                 await Task.Delay(100);
             }
+        }
+    }
+
+    public enum AmrDirection
+    {
+        Forward,
+        Backward,
+        Left,
+        Right,
+        LeftSpin,
+        RightSpin
+    }
+
+    public class AmrController
+    {
+        private readonly Action<string, string> publishMessage;
+        private Stopwatch moveStopwatch;
+
+        public AmrController(Action<string, string> publishMessage)
+        {
+            this.publishMessage = publishMessage;
+            moveStopwatch = new Stopwatch();
+        }
+
+        public void BindButton(Button button, AmrDirection direction)
+        {
+            button.Tag = direction;
+            button.MouseDown += async (s, e) => await MoveMouseDownAsync(s, e, direction);
+            button.MouseUp += MoveMouseUp;
+        }
+
+        private async Task MoveMouseDownAsync(object? sender, MouseEventArgs e, AmrDirection direction)
+        {
+            moveStopwatch.Restart();
+            string topic = GetTopic(direction);
+            double value = GetValue(direction);
+
+            while (moveStopwatch.IsRunning)
+            {
+                PublishAmrCommand(topic, value);
+                await Task.Delay(100);
+            }
+        }
+
+        private void MoveMouseUp(object? sender, MouseEventArgs e)
+        {
+            moveStopwatch.Stop();
+
+            if (sender is Button button && button.Tag is AmrDirection direction)
+            {
+                string topic = GetTopic(direction);
+                PublishAmrCommand(topic, 0.0);
+            }
+        }
+
+        private void PublishAmrCommand(string topic, double value)
+        {
+            var message = new
+            {
+                topic,
+                message = new
+                {
+                    data = value
+                }
+            };
+            string jsonMessage = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+            publishMessage(topic, jsonMessage);
+        }
+
+        private string GetTopic(AmrDirection direction)
+        {
+            return direction switch
+            {
+                AmrDirection.Forward or AmrDirection.Backward => "/request_move_vertical",
+                AmrDirection.Left or AmrDirection.Right => "/request_move_horizontal",
+                AmrDirection.LeftSpin or AmrDirection.RightSpin => "/request_move_spin",
+                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+            };
+        }
+
+        private double GetValue(AmrDirection direction)
+        {
+            return direction switch
+            {
+                AmrDirection.Forward => 0.5,
+                AmrDirection.Backward => -0.5,
+                AmrDirection.Left => 0.5,
+                AmrDirection.Right => -0.5,
+                AmrDirection.LeftSpin => 0.5,
+                AmrDirection.RightSpin => -0.5,
+                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+            };
         }
     }
 

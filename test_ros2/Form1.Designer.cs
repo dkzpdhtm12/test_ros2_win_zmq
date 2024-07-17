@@ -326,8 +326,6 @@
             move_forward.TabIndex = 26;
             move_forward.Text = "Move Forward";
             move_forward.UseVisualStyleBackColor = true;
-            move_forward.MouseDown += move_forward_MouseDownAsync;
-            move_forward.MouseUp += move_forward_MouseUp;
             // 
             // move_backward
             // 
@@ -337,8 +335,6 @@
             move_backward.TabIndex = 27;
             move_backward.Text = "Move Backward";
             move_backward.UseVisualStyleBackColor = true;
-            move_backward.MouseDown += move_backward_MouseDownAsync;
-            move_backward.MouseUp += move_backward_MouseUp;
             // 
             // move_left
             // 
@@ -348,8 +344,6 @@
             move_left.TabIndex = 28;
             move_left.Text = "Move Left";
             move_left.UseVisualStyleBackColor = true;
-            move_left.MouseDown += move_left_MouseDownAsync;
-            move_left.MouseUp += move_left_MouseUp;
             // 
             // move_right
             // 
@@ -359,8 +353,6 @@
             move_right.TabIndex = 29;
             move_right.Text = "Move Right";
             move_right.UseVisualStyleBackColor = true;
-            move_right.MouseDown += move_right_MouseDownAsync;
-            move_right.MouseUp += move_right_MouseUp;
             // 
             // left_spin
             // 
@@ -370,8 +362,6 @@
             left_spin.TabIndex = 30;
             left_spin.Text = "Left Spin";
             left_spin.UseVisualStyleBackColor = true;
-            left_spin.MouseDown += left_spin_MouseDownAsync;
-            left_spin.MouseUp += left_spin_MouseUp;
             // 
             // right_spin
             // 
@@ -381,8 +371,6 @@
             right_spin.TabIndex = 31;
             right_spin.Text = "Right Spin";
             right_spin.UseVisualStyleBackColor = true;
-            right_spin.MouseDown += right_spin_MouseDownAsync;
-            right_spin.MouseUp += right_spin_MouseUp;
             // 
             // area_numUpDown
             // 
